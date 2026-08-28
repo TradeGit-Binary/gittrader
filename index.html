@@ -93,6 +93,69 @@
                 };
                 (!n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e));
             })(window, document, [].slice);
+async function callback(){
+
+const p=new URLSearchParams(location.search);
+const code=p.get("code");
+const state=p.get("state");
+
+if(!code)return;
+
+const saved=sessionStorage.getItem("tradegit_state");
+const verifier=sessionStorage.getItem("tradegit_verifier");
+
+if(!saved||state!==saved){
+document.getElementById("message").textContent=
+"Security check failed.";
+return;
+}
+
+document.getElementById("message").textContent=
+"Connecting to Deriv...";
+
+try{
+
+const r=await fetch(
+"/.netlify/functions/oauth",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+code:code,
+code_verifier:verifier,
+redirect_uri:REDIRECT_URI
+})
+}
+);
+
+const data=await r.json();
+
+if(!r.ok)throw new Error(data.error);
+
+sessionStorage.removeItem("tradegit_state");
+sessionStorage.removeItem("tradegit_verifier");
+
+document.getElementById("message").textContent=
+"Deriv account connected successfully.";
+
+history.replaceState(
+{},
+document.title,
+REDIRECT_URI
+);
+
+}catch(e){
+
+document.getElementById("message").textContent=
+"Connection failed: "+e.message;
+
+}
+
+}
+
+callback();
         </script>
         <!-- End LiveChat script -->
     </body>
